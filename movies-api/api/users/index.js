@@ -21,6 +21,10 @@ const router = express.Router(); // eslint-disable-line
       return next();
     }
     if (req.query.action === 'register') {
+      const reg = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,}$/
+        if (!reg.test(req.body.password)) {
+            res.status(401).json({code: 401, success: false, msg: 'Password must be at least 5 characters long and contain at least one letter and one number.'});
+        }
       await User.create(req.body);
       res.status(201).json({code: 201, msg: 'Successful created new user.'});
     } else {
@@ -58,9 +62,14 @@ router.post('/:userName/favourites', asyncHandler(async (req, res) => {
     const userName = req.params.userName;
     const movie = await movieModel.findByMovieDBId(newFavourite);
     const user = await User.findByUserName(userName);
-    await user.favourites.push(movie._id);
-    await user.save(); 
-    res.status(201).json(user); 
+    if (!user.favourites.includes(movie._id) {
+        await user.favourites.push(movie._id);
+        await user.save(); 
+        res.status(201).json(user); 
+    }
+    else {
+        res.status(400).json({code: 400, msg: 'Movie already in favourites'});
+    }
   }));
 
   router.get('/:userName/favourites', asyncHandler( async (req, res) => {
